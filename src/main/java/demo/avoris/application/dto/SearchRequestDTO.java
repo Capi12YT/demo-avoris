@@ -1,5 +1,6 @@
 package demo.avoris.application.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 
@@ -14,10 +15,12 @@ public record SearchRequestDTO(
         String hotelId,
 
         @NotNull
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
         @Schema(example = "29/12/2023", description = "dd/MM/yyyy")
         LocalDate checkIn,
 
         @NotNull
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd/MM/yyyy")
         @Schema(example = "31/12/2023", description = "dd/MM/yyyy")
         LocalDate checkOut,
 
@@ -26,12 +29,6 @@ public record SearchRequestDTO(
         List<Integer> ages
 ) {
     public SearchRequestDTO {
-        if (!checkIn.isBefore(checkOut)) {
-            throw new IllegalArgumentException(
-                    "Check-in date must be before check-out date"
-            );
-        }
-
         ages = List.copyOf(ages);
     }
 }
