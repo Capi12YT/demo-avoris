@@ -6,6 +6,7 @@ import demo.avoris.domain.model.Search;
 
 import demo.avoris.infrastructure.adapter.out.kafka.exeption.ErrorSendTopic;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -20,6 +21,8 @@ public class KafkaSearchProducer implements SearchEventPublisherPort {
 
     private final Logger log = Logger.getLogger(KafkaSearchProducer.class.getName());
 
+    @Value("${app.kafka.topic-name}")
+    private String topicName;
 
     public KafkaSearchProducer(
             KafkaTemplate<String, String> kafkaTemplate, ObjectMapper objectMapper) {
@@ -31,9 +34,8 @@ public class KafkaSearchProducer implements SearchEventPublisherPort {
     public void publishSearch(Search search) {
         try {
             String payload = objectMapper.writeValueAsString(search);
-            String topic = "hotel_availability_searches";
-            kafkaTemplate.send(topic, search.searchId(), payload);
-            log.info("Published search with id: " + search.searchId());
+            kafkaTemplate.send(topicName, search.searchId(), payload);
+            log.info("Published search with id: " + search.searchId() + " to topic: " + topicName);
         } catch (Exception e) {
             throw new ErrorSendTopic("Error processing message: " + e.getMessage());
         }
