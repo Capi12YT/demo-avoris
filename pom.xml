@@ -79,18 +79,101 @@
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
 				<version>0.8.11</version>
+				<configuration>
+					<excludes>
+						<!-- Clases de configuración -->
+						<exclude>**/config/**</exclude>
+						<exclude>**/*Config.*</exclude>
+						<exclude>**/*Configuration.*</exclude>
+
+						<!-- Clases de aplicación principal -->
+						<exclude>**/AvorisApplication.*</exclude>
+
+						<!-- DTOs (solo estructura, sin lógica de negocio) -->
+						<exclude>**/dto/**/*DTO.*</exclude>
+						<exclude>**/dto/**/*Request.*</exclude>
+						<exclude>**/dto/**/*Response.*</exclude>
+
+						<!-- Records (estructuras de datos) -->
+						<exclude>**/dto/**/*Record.*</exclude>
+
+						<!-- Excepciones simples sin lógica compleja -->
+						<exclude>**/exception/**/*Exception.*</exclude>
+
+						<!-- Dominio sin lógica de negocio -->
+						<exclude>**/domain/**</exclude>
+					</excludes>
+				</configuration>
 				<executions>
 					<execution>
+						<id>default-prepare-agent</id>
 						<goals>
 							<goal>prepare-agent</goal>
 						</goals>
 					</execution>
 					<execution>
-						<id>report</id>
+						<id>default-report</id>
 						<phase>verify</phase>
 						<goals>
 							<goal>report</goal>
 						</goals>
+					</execution>
+					<execution>
+						<id>check</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<!-- Reglas de cobertura por capas de Arquitectura Hexagonal -->
+								<rule>
+									<element>BUNDLE</element>
+									<limits>
+										<limit>
+											<counter>INSTRUCTION</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>0.80</minimum>
+										</limit>
+										<limit>
+											<counter>BRANCH</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>0.75</minimum>
+										</limit>
+									</limits>
+								</rule>
+
+								<!-- Reglas para capa de aplicación -->
+								<rule>
+									<element>PACKAGE</element>
+									<includes>
+										<include>demo.avoris.application.*</include>
+									</includes>
+									<limits>
+										<limit>
+											<counter>INSTRUCTION</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>0.85</minimum>
+										</limit>
+									</limits>
+								</rule>
+
+								<!-- Reglas para capa de infraestructura -->
+								<rule>
+									<element>PACKAGE</element>
+									<includes>
+										<include>demo.avoris.infrastructure.*</include>
+									</includes>
+									<limits>
+										<limit>
+											<counter>INSTRUCTION</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>0.75</minimum>
+										</limit>
+									</limits>
+								</rule>
+							</rules>
+						</configuration>
 					</execution>
 				</executions>
 			</plugin>

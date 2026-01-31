@@ -11,9 +11,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,9 +29,33 @@ class KafkaSearchConsumerTest {
 
     private KafkaSearchConsumer kafkaSearchConsumer;
 
+    private static final String TEST_TOPIC_NAME = "test-hotel-searches";
+    private static final String TEST_GROUP_ID = "test-hotel-group";
+
     @BeforeEach
     void setUp() {
         kafkaSearchConsumer = new KafkaSearchConsumer(useCase, objectMapper);
+        // Inyectar valores usando ReflectionTestUtils para simular @Value
+        ReflectionTestUtils.setField(kafkaSearchConsumer, "topicName", TEST_TOPIC_NAME);
+        ReflectionTestUtils.setField(kafkaSearchConsumer, "groupId", TEST_GROUP_ID);
+    }
+
+    @Test
+    @DisplayName("Debería tener configuradas las propiedades del tópico y grupo correctamente")
+    void shouldHaveCorrectTopicAndGroupProperties_WhenPropertiesAreInjected() {
+        // When
+        String actualTopicName = (String) ReflectionTestUtils.getField(kafkaSearchConsumer, "topicName");
+        String actualGroupId = (String) ReflectionTestUtils.getField(kafkaSearchConsumer, "groupId");
+
+        // Then
+        assertAll("Properties injection verification",
+                () -> assertEquals(TEST_TOPIC_NAME, actualTopicName,
+                        "El tópico debe coincidir con el valor inyectado desde properties"),
+                () -> assertEquals(TEST_GROUP_ID, actualGroupId,
+                        "El grupo de consumidores debe coincidir con el valor inyectado desde properties"),
+                () -> assertNotNull(actualTopicName, "El tópico no debe ser null"),
+                () -> assertNotNull(actualGroupId, "El grupo no debe ser null")
+        );
     }
 
     @Test

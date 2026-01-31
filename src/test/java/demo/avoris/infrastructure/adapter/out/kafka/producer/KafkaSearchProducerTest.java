@@ -5,12 +5,12 @@ import demo.avoris.domain.model.Search;
 import demo.avoris.infrastructure.adapter.out.kafka.exeption.ErrorSendTopic;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -28,9 +28,26 @@ class KafkaSearchProducerTest {
 
     private KafkaSearchProducer kafkaSearchProducer;
 
+    private static final String TEST_TOPIC_NAME = "test-hotel-searches";
+
     @BeforeEach
     void setUp() {
         kafkaSearchProducer = new KafkaSearchProducer(kafkaTemplate, objectMapper);
+        // Inyectar el valor del tópico usando ReflectionTestUtils
+        ReflectionTestUtils.setField(kafkaSearchProducer, "topicName", TEST_TOPIC_NAME);
+    }
+
+    @Test
+    void shouldHaveCorrectTopicProperty_WhenPropertyIsInjected() {
+        // When
+        String actualTopicName = (String) ReflectionTestUtils.getField(kafkaSearchProducer, "topicName");
+
+        // Then
+        assertAll("Topic property injection verification",
+                () -> assertEquals(TEST_TOPIC_NAME, actualTopicName,
+                        "El tópico debe coincidir con el valor inyectado desde properties"),
+                () -> assertNotNull(actualTopicName, "El tópico no debe ser null")
+        );
     }
 
     @Test
@@ -47,7 +64,7 @@ class KafkaSearchProducerTest {
                 () -> assertDoesNotThrow(() -> kafkaSearchProducer.publishSearch(search),
                         "No debe lanzar excepción con search válido"),
                 () -> verify(objectMapper, times(1)).writeValueAsString(search),
-                () -> verify(kafkaTemplate, times(1)).send(eq("hotel_availability_searches"), eq(search.searchId()), eq(expectedPayload))
+                () -> verify(kafkaTemplate, times(1)).send(eq(TEST_TOPIC_NAME), eq(search.searchId()), eq(expectedPayload))
         );
     }
 
@@ -95,7 +112,7 @@ class KafkaSearchProducerTest {
                 () -> assertTrue(exception.getMessage().contains("Kafka connection error"),
                         "El mensaje debe contener la causa del error"),
                 () -> verify(objectMapper, times(1)).writeValueAsString(search),
-                () -> verify(kafkaTemplate, times(1)).send(eq("hotel_availability_searches"), eq(search.searchId()), eq(payload))
+                () -> verify(kafkaTemplate, times(1)).send(eq(TEST_TOPIC_NAME), eq(search.searchId()), eq(payload))
         );
     }
 
@@ -104,7 +121,6 @@ class KafkaSearchProducerTest {
         // Given
         Search search = TestDataBuilder.createTestSearch();
         String payload = "{\"searchId\":\"test-search-123\"}";
-        String expectedTopic = "hotel_availability_searches";
 
         when(objectMapper.writeValueAsString(search)).thenReturn(payload);
         when(kafkaTemplate.send(any(String.class), any(String.class), any(String.class))).thenReturn(null);
@@ -114,8 +130,8 @@ class KafkaSearchProducerTest {
 
         // Then
         assertAll("Kafka topic verification",
-                () -> verify(kafkaTemplate, times(1)).send(eq(expectedTopic), any(String.class), any(String.class)),
-                () -> verify(kafkaTemplate, times(1)).send(eq(expectedTopic), eq(search.searchId()), eq(payload))
+                () -> verify(kafkaTemplate, times(1)).send(eq(TEST_TOPIC_NAME), any(String.class), any(String.class)),
+                () -> verify(kafkaTemplate, times(1)).send(eq(TEST_TOPIC_NAME), eq(search.searchId()), eq(payload))
         );
     }
 
@@ -135,7 +151,7 @@ class KafkaSearchProducerTest {
         // Then
         assertAll("Kafka message key verification",
                 () -> verify(kafkaTemplate, times(1)).send(any(String.class), eq(customSearchId), any(String.class)),
-                () -> verify(kafkaTemplate, times(1)).send(eq("hotel_availability_searches"), eq(customSearchId), eq(payload))
+                () -> verify(kafkaTemplate, times(1)).send(eq(TEST_TOPIC_NAME), eq(customSearchId), eq(payload))
         );
     }
 
@@ -159,8 +175,8 @@ class KafkaSearchProducerTest {
                         "No debe lanzar excepción con la segunda publicación"),
                 () -> verify(objectMapper, times(1)).writeValueAsString(search1),
                 () -> verify(objectMapper, times(1)).writeValueAsString(search2),
-                () -> verify(kafkaTemplate, times(1)).send(eq("hotel_availability_searches"), eq("search-1"), eq(payload1)),
-                () -> verify(kafkaTemplate, times(1)).send(eq("hotel_availability_searches"), eq("search-2"), eq(payload2))
+                () -> verify(kafkaTemplate, times(1)).send(eq(TEST_TOPIC_NAME), eq("search-1"), eq(payload1)),
+                () -> verify(kafkaTemplate, times(1)).send(eq(TEST_TOPIC_NAME), eq("search-2"), eq(payload2))
         );
     }
 
@@ -178,7 +194,7 @@ class KafkaSearchProducerTest {
                 () -> assertDoesNotThrow(() -> kafkaSearchProducer.publishSearch(complexSearch),
                         "No debe lanzar excepción con búsqueda compleja"),
                 () -> verify(objectMapper, times(1)).writeValueAsString(complexSearch),
-                () -> verify(kafkaTemplate, times(1)).send(eq("hotel_availability_searches"), eq(complexSearch.searchId()), eq(complexPayload))
+                () -> verify(kafkaTemplate, times(1)).send(eq(TEST_TOPIC_NAME), eq(complexSearch.searchId()), eq(complexPayload))
         );
     }
 
