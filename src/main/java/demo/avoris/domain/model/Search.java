@@ -23,9 +23,4 @@ public record Search(
         this.count = count;
     }
 
-    public Search(String hotelId, LocalDate checkIn, LocalDate checkOut, List<Integer> ages) {
-        this("", hotelId, checkIn, checkOut, ages, 1);
-    }
-
-
 }

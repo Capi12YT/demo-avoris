@@ -1,5 +1,5 @@
 # Etapa de construcción
-FROM maven:3.9-openjdk-17-slim AS build
+FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
 
 # Copiar archivos de configuración Maven primero (para aprovechar cache de Docker)
@@ -18,7 +18,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests
 
 # Etapa de ejecución
-FROM openjdk:17-jre-slim
+FROM eclipse-temurin:21-jre
 WORKDIR /app
 
 # Copiar el JAR compilado desde la etapa de construcción

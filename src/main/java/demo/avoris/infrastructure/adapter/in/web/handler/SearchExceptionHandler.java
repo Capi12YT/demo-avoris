@@ -29,7 +29,7 @@ public class SearchExceptionHandler {
         ErrorResponseDTO errorResponse = new ErrorResponseDTO(
                 HttpStatus.BAD_REQUEST.value(),
                 "Bad Request",
-                "The check-in date provided is invalid. Please ensure the check-in date is not in the past and follows the correct format (YYYY-MM-DD). " + ex.getMessage(),
+                "The check-in date provided is invalid." + ex.getMessage(),
                 request.getRequestURI()
         );
 
