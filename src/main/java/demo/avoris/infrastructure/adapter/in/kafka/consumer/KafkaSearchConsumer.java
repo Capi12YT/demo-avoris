@@ -1,14 +1,12 @@
-package demo.avoris.infrastructure.adapter.out.kafka.consumer;
+package demo.avoris.infrastructure.adapter.in.kafka.consumer;
 
 import demo.avoris.application.port.in.SearchUseCase;
 import demo.avoris.domain.model.Search;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import demo.avoris.infrastructure.adapter.out.kafka.exeption.ErrorConsumeTopic;
-
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
-
+import demo.avoris.infrastructure.adapter.in.kafka.exeption.ErrorConsumeTopic;
 import java.util.logging.Logger;
 
 
